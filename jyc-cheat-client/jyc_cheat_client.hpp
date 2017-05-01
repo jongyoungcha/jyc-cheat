@@ -28,7 +28,7 @@ namespace jyc_cheat
 
     // thread logics
     void StartReceiveCheatMessagesThroughBackground();
-    static void* ReceiveCheatMessagesThroughBackground(void* t);
+    static void *ReceiveCheatMessagesThroughBackground(void* t);
     void StopReceiverCheatMessage();
 
     // the protocols
