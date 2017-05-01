@@ -60,7 +60,8 @@ int jyc_cheat_server::StartListen(){
   state = ::bind(this->server_sock, (struct sockaddr*)&server_addr, sizeof(server_addr));
   printf("bind state %d\n", state);
 
-  if (state == -1){
+  if (state == -1)
+{
     printf("bind error\n");
     perror("bind error : ");
     exit(0);
@@ -233,19 +234,19 @@ int jyc_cheat_server::HandleCreateTheRoomWithNickName(jyc_cheat_server *server, 
   if(server->map_rooms.find(room_name) == server->map_rooms.end()){
     // create the room and add a user.
 
-    cheat_user* user = message->GetUser();
-
+    cheat_user* new_user = message->GetUser();
     cheat_room* new_cheat_room = new cheat_room(room_name);
-    new_cheat_room->AddUser(user);
-    user->EnterRoom(new_cheat_room);
+
+    new_user->SetNickName(nick_name);
+    new_user->EnterRoom(new_cheat_room);
 
     server->map_rooms[room_name] = new_cheat_room;
 
-    json_ret["is_added"] = true;
+    json_ret["is_created"] = true;
     return message->GetUser()->SendMessage(json_ret.dump());
   }
   else{
-    json_ret["is_added"] = false;
+    json_ret["is_created"] = false;
     json_ret["error_reason"] = "room_existed";
     return message->GetUser()->SendMessage(json_ret.dump());
   }
@@ -256,27 +257,38 @@ int jyc_cheat_server::HandleEnterTheRoomWithNickName(jyc_cheat_server* server, c
   json json_recv = json::parse(message->GetMessage());
   string room_name = json_recv["room_name"].get<string>();
   string nick_name = json_recv["nickname"].get<string>();
+  cheat_user* user_to_enter;
+  cheat_room* room_to_enter;
 
   json json_ret;
   json_ret["res_tag"] = "enter_the_room_with_nickname";
 
   // check the room and find the user with nickname;
   map<string, cheat_room*>::iterator iter;
+  cout << "finding with "<< room_name << endl;
   if(server->map_rooms.find(room_name) != server->map_rooms.end()){
-    if(server->map_rooms[room_name]->IsExistUser(message->GetUser()) == 1){
-      server->map_rooms[room_name]->AddUser(message->GetUser());
+    cout << "we found :"<< room_name << endl;
+    room_to_enter = server->map_rooms[room_name];
+
+    message->GetUser()->SetNickName(nick_name);
+    // the room was existing.
+    if(room_to_enter->IsExistUser(message->GetUser()) == 0){
+      // the user was not existing.
+      user_to_enter = message->GetUser();
+      user_to_enter->SetNickName(nick_name);
+      user_to_enter->EnterRoom(room_to_enter);
       
-      json_ret["is_added"] = true;
+      json_ret["is_entering"] = true;
       return message->GetUser()->SendMessage(json_ret.dump());
     }
     else{
-      json_ret["is_added"] = false;
-      json_ret["error_reason"] = "same_name_exsited";
+      json_ret["is_entering"] = false;
+      json_ret["error_reason"] = "same_nick_name_existed";
       return message->GetUser()->SendMessage(json_ret.dump());
     }
   }
 
-  json_ret["is_added"] = false;
+  json_ret["is_entering"] = false;
   json_ret["error_reason"] = "room_not_existed";
   return message->GetUser()->SendMessage(json_ret.dump());
 }
@@ -286,7 +298,13 @@ int jyc_cheat_server::HandleSendCheatMessage(jyc_cheat_server* server, cheat_mes
 
   cheat_user* user = message->GetUser();
   cheat_room* cheat_room = user->GetCurrentCheatRoom();
-  cheat_room->SendMessageToMembers(message);
+
+  if(user && cheat_room){
+    cheat_room->SendMessageToMembers(message);
+  }
+  else{
+    cout << "In HandleSendCheatMessage() a user or cheat_room pointer variable is NULL." << endl;
+  }
 
   return 0;
 }
@@ -314,11 +332,10 @@ void *jyc_cheat_server::ReceiveMessagesLogic(void *t){
     list<cheat_user*>::iterator iter_user;
     for(iter_user = server->list_user.begin(); iter_user != server->list_user.end(); ++iter_user){
       string str_message = (*iter_user)->ReceiveMessage();
-      (*iter_user)->ReceiveMessage();
       if(str_message.compare("") != 0){
 	cheat_message message((*iter_user), str_message);
-	server->queue_message.push(message);
 	cout << "get message : " << message.GetMessage().c_str() << endl;
+	server->queue_message.push(message);
       }
     }
   }

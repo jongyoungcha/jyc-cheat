@@ -34,7 +34,6 @@ namespace jyc_cheat{
     virtual string ToXml() = 0;
   };
 
-
   class prtc_get_room_list : public protocol{
   private:
     json j;

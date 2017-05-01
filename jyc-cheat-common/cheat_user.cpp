@@ -12,6 +12,7 @@ cheat_user::~cheat_user(){
 int cheat_user::EnterRoom(cheat_room* room){
   if(room){
     this->current_room = room;
+    room->AddUser(this);
   }
 
   return 0;
@@ -40,7 +41,7 @@ string cheat_user::ReceiveMessage(){
   int recv_size = 0;
       
   while((recv_size = recv(this->socket, &buf, 8192, 0)) > 0){
-    sleep(1);
+    usleep(100);
     message += buf;
     buf[0] = '\0';
   }
