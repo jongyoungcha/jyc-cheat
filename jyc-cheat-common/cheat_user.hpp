@@ -15,7 +15,8 @@ namespace jyc_cheat
     cheat_room* current_room;
     string user_id;
     string nick_name;
-    int socket;
+    int sock_main;
+    int sock_async_sub;
 
   public:
     cheat_user(int sock);
@@ -24,7 +25,11 @@ namespace jyc_cheat
 
     int EnterRoom(cheat_room* room);
 
-    int GetSocket();
+    int GetMainSock();
+    int SetSubAsyncSock(int sock);
+    int GetSubAsyncSock();
+    int SendMessageWithMain(string message);
+    int SendMessageWithAsyncSub(string message);
 
     cheat_room* GetCurrentCheatRoom();
 
@@ -34,7 +39,6 @@ namespace jyc_cheat
 
     string ReceiveMessage();
 
-    int SendMessage(string message);
   };
 }
 

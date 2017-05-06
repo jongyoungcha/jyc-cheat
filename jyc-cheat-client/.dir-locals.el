@@ -3,7 +3,7 @@
 	 (projectile-project-root . "~/projects/jyc-cheat/jyc-cheat-client/")
 	 (eval . (defun jyc-sql-compile()
 		   (interactive)
-		   (shell-command (format "python %s/build.py --debug --cmd" projectile-project-root))
+		   (exec-shell-command-with-buffer (format "python %s/build.py --debug --cmd " projectile-project-root) (format "%s-%s" "*compilation*" projectile-project-name))
 		   (compilation-minor-mode t)
 		   (switch-to-buffer-other-window (other-buffer (current-buffer) 1))
 		   ))

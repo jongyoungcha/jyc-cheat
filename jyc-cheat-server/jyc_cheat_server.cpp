@@ -60,8 +60,7 @@ int jyc_cheat_server::StartListen(){
   state = ::bind(this->server_sock, (struct sockaddr*)&server_addr, sizeof(server_addr));
   printf("bind state %d\n", state);
 
-  if (state == -1)
-{
+  if (state == -1){
     printf("bind error\n");
     perror("bind error : ");
     exit(0);
@@ -111,7 +110,7 @@ int jyc_cheat_server::StartAccept(){
 int jyc_cheat_server::RemoveUser(cheat_user* user){
   list<cheat_user*>::iterator iter;
   for(iter = this->list_user.begin(); iter != this->list_user.end(); ++iter){
-    if(user->GetSocket() == (*iter)->GetSocket()){
+    if(user->GetMainSock() == (*iter)->GetMainSock()){
       this->list_user.erase(iter);
     }
   }
@@ -142,8 +141,18 @@ void *jyc_cheat_server::ConsumeMessagesLogic(void* t){
 }
 
 int jyc_cheat_server::MessageHandler(jyc_cheat_server* server, cheat_message* message){
-  json received_json = json::parse(message->GetMessage());
-  string req_tags = received_json["req_tag"].get<std::string>();
+  json received_json;
+  string req_tags;
+
+  try{
+    received_json  = json::parse(message->GetMessage());
+  }
+  catch (...) {
+    cout << "error occured during parsing message" << endl;
+    return -1;
+  }
+
+  req_tags = received_json["req_tag"].get<std::string>();
   cout << "req_tags : " << req_tags << endl;
   int result_of_send = 0;
 
@@ -163,6 +172,7 @@ int jyc_cheat_server::MessageHandler(jyc_cheat_server* server, cheat_message* me
     result_of_send = this->HandleSendCheatMessage(server, message);
   }
   else{
+    return 0;
   }
 
   // write failed... In this case, the socket was closed. So should remove connected user.
@@ -187,7 +197,7 @@ int jyc_cheat_server::HandleRoomList(jyc_cheat_server* server, cheat_message* me
   json_ret["res_tag"] = "get_room_list";
   json_ret["rooms"] = json_rooms;
 
-  return message->GetUser()->SendMessage(json_ret.dump());
+  return message->GetUser()->SendMessageWithMain(json_ret.dump());
 }
 
 
@@ -218,7 +228,7 @@ int jyc_cheat_server::HandleIsExistingTheRoom(jyc_cheat_server* server, cheat_me
     json_ret["is_exist"]= false;
   }
 
-  return message->GetUser()->SendMessage(json_ret.dump());
+  return message->GetUser()->SendMessageWithMain(json_ret.dump());
 }
 
 int jyc_cheat_server::HandleCreateTheRoomWithNickName(jyc_cheat_server *server, cheat_message* message){
@@ -243,12 +253,12 @@ int jyc_cheat_server::HandleCreateTheRoomWithNickName(jyc_cheat_server *server, 
     server->map_rooms[room_name] = new_cheat_room;
 
     json_ret["is_created"] = true;
-    return message->GetUser()->SendMessage(json_ret.dump());
+    return message->GetUser()->SendMessageWithMain(json_ret.dump());
   }
   else{
     json_ret["is_created"] = false;
     json_ret["error_reason"] = "room_existed";
-    return message->GetUser()->SendMessage(json_ret.dump());
+    return message->GetUser()->SendMessageWithMain(json_ret.dump());
   }
 }
 
@@ -279,18 +289,18 @@ int jyc_cheat_server::HandleEnterTheRoomWithNickName(jyc_cheat_server* server, c
       user_to_enter->EnterRoom(room_to_enter);
       
       json_ret["is_entering"] = true;
-      return message->GetUser()->SendMessage(json_ret.dump());
+      return message->GetUser()->SendMessageWithMain(json_ret.dump());
     }
     else{
       json_ret["is_entering"] = false;
       json_ret["error_reason"] = "same_nick_name_existed";
-      return message->GetUser()->SendMessage(json_ret.dump());
+      return message->GetUser()->SendMessageWithMain(json_ret.dump());
     }
   }
 
   json_ret["is_entering"] = false;
   json_ret["error_reason"] = "room_not_existed";
-  return message->GetUser()->SendMessage(json_ret.dump());
+  return message->GetUser()->SendMessageWithMain(json_ret.dump());
 }
 
 

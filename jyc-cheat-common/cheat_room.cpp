@@ -81,7 +81,7 @@ int cheat_room::SendMessageToMembers(cheat_message* message){
 
     // cout << "room's user size : " << this->map_users.size() << endl;
     for(iter = this->map_users.begin(); iter != this->map_users.end(); ++iter){
-      if(iter->second->SendMessage(json_ret.dump()) == -1){
+      if(iter->second->SendMessageWithMain(json_ret.dump()) == -1){
       	// What I should handle something ?
       }
     }

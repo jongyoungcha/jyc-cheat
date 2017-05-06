@@ -1,0 +1,7 @@
+cmake_minimum_required (VERSION 2.8)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+project (jyc-cheat-test-ncurses)
+find_package(curses REQUIRED)
+include_directories(${CURSES_INCLUDE_DIR})
+add_executable(jyc_cheat_test_ncurses main.cpp)
+target_link_libraries(jyc_cheat_test_ncurses ${CURSES_LIBRARIES})

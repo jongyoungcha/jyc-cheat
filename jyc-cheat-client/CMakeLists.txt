@@ -1,8 +1,11 @@
 cmake_minimum_required (VERSION 2.8)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 project (jyc_cheat_client)
+find_package(curses REQUIRED)
 subdirs (../jyc-cheat-common)
 include_directories(../jyc-cheat-common)
+include_directories(${CURSES_INCLUDE_DIR})
 add_executable(jyc_cheat_client main.cpp jyc_cheat_client.cpp)
 
+target_link_libraries(jyc_cheat_client ${CURSES_LIBRARIES})
 target_link_libraries(jyc_cheat_client jyc_cheat_common)

@@ -18,5 +18,6 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <map>
+#include <ncurses.h>
 
 #endif
